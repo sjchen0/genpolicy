@@ -18,7 +18,7 @@ conda activate radd
 ```
 ## Pretrained Diffusion Language Model
 
-We make use of RADD, a pretrained DLM trained for 400k steps with different loss functions, are available on Hugging Face:
+We make use of RADD, a pretrained DLM trained with OpenWebText for 400k steps. It has multiple versions trained with different loss functions, available on Hugging Face:
 |Model|Loss function|Total model size|
 |:---:|:---:|:---:|
 |[radd-lambda-dce](https://huggingface.co/JingyangOu/radd-lambda-dce)|$\lambda$-DCE|162M|
@@ -30,6 +30,8 @@ For example, to load the `radd-t-dce` model and noise schedule, use the followin
 from load_model import load_model
 model, noise = load_model('JingyangOu/radd-t-dce', device='cuda') 
 ```
+
+Our policy model will serve as an add-on to the pretrained RADD model to boost its sampling performance.
 
 ## Sampling
 
@@ -45,7 +47,7 @@ python run_sample.py --strategy policy --batch_size 1 --steps 16
 
 Policy sampling needs to load a trained policy model. One checkpoint is provided in `example/014609`.
 
-## Training
+## Policy Training
 
 An example training script:
 

@@ -27,7 +27,6 @@ scripts
 workdir
 *.sh
 kb_configs
-*.md
 script*
 data
 *.out
