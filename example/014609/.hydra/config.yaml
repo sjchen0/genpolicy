@@ -1,0 +1,54 @@
+ngpus: 4
+tokens: 50257
+gpt_dir: gpt2-large
+outdir: ../output
+pretrained_hf_path: JingyangOu/radd-t-dce
+training:
+  batch_size: 8
+  accum: 1
+  n_iters: 1000001
+  snapshot_freq: 200
+  log_freq: 50
+  eval_freq: 100
+  snapshot_freq_for_preemption: 10000
+  weight: standard
+  snapshot_sampling: false
+  ema: 0.9999
+  loss_type: policy_log_loss
+data:
+  train: openwebtext
+  valid: wikitext103
+  cache_dir: data
+noise:
+  type: loglinear
+  sigma_min: 0.0001
+  sigma_max: 20
+sampling:
+  predictor: euler
+  steps: 1024
+  discrete_steps: 16
+  discrete_time_exponent: 0.9
+eval:
+  batch_size: 8
+  perplexity: true
+  perplexity_batch_size: 16
+optim:
+  weight_decay: 0
+  optimizer: AdamW
+  lr: 0.0003
+  beta1: 0.9
+  beta2: 0.999
+  eps: 1.0e-08
+  warmup: 2500
+  grad_clip: 1.0
+model:
+  name: small_radd
+  type: ddit_wot
+  hidden_size: 768
+  cond_dim: 128
+  length: 1024
+  n_blocks: 12
+  n_heads: 12
+  dropout: 0.02
+  use_checkpoint: false
+  dtype: float32

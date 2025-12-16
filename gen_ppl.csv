@@ -1,0 +1,6 @@
+name,params,mean,std
+policy,topp=0.99/rep=100/step=16,305.888,85.324
+confidence,noise=1e-1/rep=100/step=16,836.266,226.668
+confidence,noise=1e0/rep=100/step=16,299.345,79.832
+confidence,noise=1e0/rep=100/step=16,308.645,96.562
+direct,rep=100/step=16,335.066,85.3441

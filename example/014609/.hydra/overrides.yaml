@@ -1,0 +1,5 @@
+- training.accum=1
+- training.batch_size=8
+- eval.batch_size=8
+- sampling.discrete_steps=16
+- model.dtype=float32
