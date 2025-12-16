@@ -1,0 +1,118 @@
+2025-12-11 01:46:27,635 - ../output/2025.12.11/014609
+2025-12-11 01:46:27,635 - {'ngpus': 1, 'tokens': 50257, 'gpt_dir': 'gpt2-large', 'outdir': '../output', 'pretrained_hf_path': 'JingyangOu/radd-t-dce', 'training': {'batch_size': 8, 'accum': 1, 'n_iters': 1000001, 'snapshot_freq': 200, 'log_freq': 50, 'eval_freq': 100, 'snapshot_freq_for_preemption': 10000, 'weight': 'standard', 'snapshot_sampling': False, 'ema': 0.9999, 'loss_type': 'policy_log_loss'}, 'data': {'train': 'openwebtext', 'valid': 'wikitext103', 'cache_dir': 'data'}, 'noise': {'type': 'loglinear', 'sigma_min': 0.0001, 'sigma_max': 20}, 'sampling': {'predictor': 'euler', 'steps': 1024, 'discrete_steps': 16, 'discrete_time_exponent': 0.9}, 'eval': {'batch_size': 8, 'perplexity': True, 'perplexity_batch_size': 16}, 'optim': {'weight_decay': 0, 'optimizer': 'AdamW', 'lr': 0.0003, 'beta1': 0.9, 'beta2': 0.999, 'eps': 1e-08, 'warmup': 2500, 'grad_clip': 1.0}, 'model': {'name': 'small_radd', 'type': 'ddit_wot', 'hidden_size': 768, 'cond_dim': 128, 'length': 1024, 'n_blocks': 12, 'n_heads': 12, 'dropout': 0.02, 'use_checkpoint': False, 'dtype': 'float32'}, 'work_dir': '../output/2025.12.11/014609', 'wandb_name': '014609'}
+2025-12-11 01:46:27,635 - Found 1 CUDA devices.
+2025-12-11 01:46:27,636 - NVIDIA A100 80GB PCIe 	 Memory: 79.25GB
+2025-12-11 01:46:27,636 - Found 48 total number of CPUs.
+2025-12-11 01:47:01,654 - Number of parameters in RADD: 162265682, in PolicyNet: 444290
+2025-12-11 01:47:01,655 - RADD(
+  (vocab_embed): EmbeddingLayer()
+  (rotary_emb): Rotary()
+  (blocks): ModuleList(
+    (0-11): 12 x DDiTBlockWot(
+      (norm1): LayerNormWot()
+      (attn_qkv): Linear(in_features=768, out_features=2304, bias=False)
+      (attn_out): Linear(in_features=768, out_features=768, bias=False)
+      (dropout1): Dropout(p=0.02, inplace=False)
+      (norm2): LayerNormWot()
+      (mlp): Sequential(
+        (0): Linear(in_features=768, out_features=3072, bias=True)
+        (1): GELU(approximate='tanh')
+        (2): Linear(in_features=3072, out_features=768, bias=True)
+      )
+      (dropout2): Dropout(p=0.02, inplace=False)
+    )
+  )
+  (output_layer): DDitFinalLayerWot(
+    (norm_final): LayerNormWot()
+    (linear): Linear(in_features=768, out_features=50258, bias=True)
+  )
+)
+2025-12-11 01:47:01,656 - DistributedDataParallel(
+  (module): PolicyNet(
+    (mlp): Sequential(
+      (0): Linear(in_features=769, out_features=384, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=384, out_features=384, bias=True)
+      (3): ReLU()
+      (4): Linear(in_features=384, out_features=2, bias=True)
+    )
+  )
+)
+2025-12-11 01:47:01,656 - EMA: <model.ema.ExponentialMovingAverage object at 0x1526e407bbb0>
+2025-12-11 01:47:01,657 - Optimizer: AdamW (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    differentiable: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.0003
+    maximize: False
+    weight_decay: 0
+)
+2025-12-11 01:47:01,657 - Scaler: <torch.cuda.amp.grad_scaler.GradScaler object at 0x1526e407bca0>
+2025-12-11 01:47:01,660 - No checkpoint found at ../output/2025.12.11/014609/checkpoints-meta/checkpoint.pth. Returned the same state as input
+Using the latest cached version of the module from /home/sc5510/.cache/huggingface/modules/datasets_modules/datasets/openwebtext/6f68e85c16ccc770c0dd489f4008852ea9633604995addd0cd76e293aed9e521 (last modified on Sun Nov  9 23:10:06 2025) since it couldn't be found locally at openwebtext
+2025-12-11 01:47:02,417 - Using the latest cached version of the module from /home/sc5510/.cache/huggingface/modules/datasets_modules/datasets/openwebtext/6f68e85c16ccc770c0dd489f4008852ea9633604995addd0cd76e293aed9e521 (last modified on Sun Nov  9 23:10:06 2025) since it couldn't be found locally at openwebtext
+Using the latest cached version of the dataset since wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+2025-12-11 01:50:26,844 - Using the latest cached version of the dataset since wikitext couldn't be found on the Hugging Face Hub (offline mode is enabled).
+Found the latest cached dataset configuration 'wikitext-103-raw-v1' at data/wikitext/wikitext-103-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Mon Nov 10 00:29:49 2025).
+2025-12-11 01:50:26,845 - Found the latest cached dataset configuration 'wikitext-103-raw-v1' at data/wikitext/wikitext-103-raw-v1/0.0.0/b08601e04326c79dfdd32d625aee71d232d685c3 (last modified on Mon Nov 10 00:29:49 2025).
+/home/sc5510/.conda/envs/radd/lib/python3.9/site-packages/torch/utils/data/dataloader.py:560: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+2025-12-11 01:50:28,095 - Starting training loop at step 0.
+2025-12-11 01:50:47,092 - step: 0, train_loss: 2.07957e+01
+/home/sc5510/.conda/envs/radd/lib/python3.9/site-packages/torch/utils/data/dataloader.py:560: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 1, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+2025-12-11 01:50:57,864 - step: 0, evaluation_loss: 2.17154e+01
+2025-12-11 01:50:58,021 - Reducer buckets have been rebuilt in this iteration.
+2025-12-11 01:59:49,610 - step: 50, train_loss: 2.07557e+01
+2025-12-11 02:08:41,108 - step: 100, train_loss: 2.02232e+01
+2025-12-11 02:08:51,708 - step: 100, evaluation_loss: 2.13196e+01
+2025-12-11 02:17:43,263 - step: 150, train_loss: 1.98230e+01
+2025-12-11 02:26:34,819 - step: 200, train_loss: 1.91310e+01
+2025-12-11 02:26:45,420 - step: 200, evaluation_loss: 2.03997e+01
+2025-12-11 02:35:37,032 - step: 250, train_loss: 1.96593e+01
+2025-12-11 02:44:28,556 - step: 300, train_loss: 1.92629e+01
+2025-12-11 02:44:39,157 - step: 300, evaluation_loss: 2.01900e+01
+2025-12-11 02:53:30,702 - step: 350, train_loss: 1.93454e+01
+2025-12-11 03:02:22,219 - step: 400, train_loss: 1.93508e+01
+2025-12-11 03:02:32,823 - step: 400, evaluation_loss: 2.01622e+01
+2025-12-11 03:11:24,446 - step: 450, train_loss: 1.96929e+01
+2025-12-11 03:20:15,867 - step: 500, train_loss: 1.93095e+01
+2025-12-11 03:20:26,466 - step: 500, evaluation_loss: 2.01425e+01
+2025-12-11 03:29:17,887 - step: 550, train_loss: 1.89450e+01
+2025-12-11 03:38:09,305 - step: 600, train_loss: 1.89559e+01
+2025-12-11 03:38:19,900 - step: 600, evaluation_loss: 1.97411e+01
+2025-12-11 03:47:11,159 - step: 650, train_loss: 1.91173e+01
+2025-12-11 03:56:02,354 - step: 700, train_loss: 1.93190e+01
+2025-12-11 03:56:12,951 - step: 700, evaluation_loss: 1.96473e+01
+2025-12-11 04:05:04,115 - step: 750, train_loss: 1.93372e+01
+2025-12-11 04:13:55,323 - step: 800, train_loss: 1.91852e+01
+2025-12-11 04:14:05,917 - step: 800, evaluation_loss: 2.02024e+01
+2025-12-11 04:22:57,147 - step: 850, train_loss: 1.92331e+01
+2025-12-11 04:31:48,327 - step: 900, train_loss: 1.89756e+01
+2025-12-11 04:31:58,928 - step: 900, evaluation_loss: 1.99519e+01
+2025-12-11 04:40:50,091 - step: 950, train_loss: 1.93186e+01
+2025-12-11 04:49:41,262 - step: 1000, train_loss: 1.89529e+01
+2025-12-11 04:49:51,855 - step: 1000, evaluation_loss: 1.98093e+01
+2025-12-11 04:58:42,974 - step: 1050, train_loss: 1.89749e+01
+2025-12-11 05:07:34,111 - step: 1100, train_loss: 1.87914e+01
+2025-12-11 05:07:44,704 - step: 1100, evaluation_loss: 1.98096e+01
+2025-12-11 05:16:35,910 - step: 1150, train_loss: 1.91071e+01
+2025-12-11 05:25:27,134 - step: 1200, train_loss: 1.92978e+01
+2025-12-11 05:25:37,729 - step: 1200, evaluation_loss: 1.98212e+01
+2025-12-11 05:34:28,817 - step: 1250, train_loss: 1.92055e+01
+2025-12-11 05:43:19,821 - step: 1300, train_loss: 1.86052e+01
+2025-12-11 05:43:30,408 - step: 1300, evaluation_loss: 1.98590e+01
+2025-12-11 05:52:21,312 - step: 1350, train_loss: 1.90852e+01
+2025-12-11 06:01:12,154 - step: 1400, train_loss: 1.91949e+01
+2025-12-11 06:01:22,739 - step: 1400, evaluation_loss: 2.02066e+01
+2025-12-11 06:10:13,586 - step: 1450, train_loss: 1.88408e+01
+2025-12-11 06:19:04,455 - step: 1500, train_loss: 1.90124e+01
+2025-12-11 06:19:15,040 - step: 1500, evaluation_loss: 1.99699e+01
+2025-12-11 06:28:05,988 - step: 1550, train_loss: 1.90515e+01
+2025-12-11 06:36:56,984 - step: 1600, train_loss: 1.94456e+01
+2025-12-11 06:37:07,570 - step: 1600, evaluation_loss: 2.00869e+01

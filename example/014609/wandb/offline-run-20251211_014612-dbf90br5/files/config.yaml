@@ -1,0 +1,117 @@
+wandb_version: 1
+
+ngpus:
+  desc: null
+  value: 1
+tokens:
+  desc: null
+  value: 50257
+gpt_dir:
+  desc: null
+  value: gpt2-large
+outdir:
+  desc: null
+  value: ../output
+pretrained_hf_path:
+  desc: null
+  value: JingyangOu/radd-t-dce
+training:
+  desc: null
+  value:
+    batch_size: 8
+    accum: 1
+    n_iters: 1000001
+    snapshot_freq: 200
+    log_freq: 50
+    eval_freq: 100
+    snapshot_freq_for_preemption: 10000
+    weight: standard
+    snapshot_sampling: false
+    ema: 0.9999
+    loss_type: policy_log_loss
+data:
+  desc: null
+  value:
+    train: openwebtext
+    valid: wikitext103
+    cache_dir: data
+noise:
+  desc: null
+  value:
+    type: loglinear
+    sigma_min: 0.0001
+    sigma_max: 20
+sampling:
+  desc: null
+  value:
+    predictor: euler
+    steps: 1024
+    discrete_steps: 16
+    discrete_time_exponent: 0.9
+eval:
+  desc: null
+  value:
+    batch_size: 8
+    perplexity: true
+    perplexity_batch_size: 16
+optim:
+  desc: null
+  value:
+    weight_decay: 0
+    optimizer: AdamW
+    lr: 0.0003
+    beta1: 0.9
+    beta2: 0.999
+    eps: 1.0e-08
+    warmup: 2500
+    grad_clip: 1.0
+model:
+  desc: null
+  value:
+    name: small_radd
+    type: ddit_wot
+    hidden_size: 768
+    cond_dim: 128
+    length: 1024
+    n_blocks: 12
+    n_heads: 12
+    dropout: 0.02
+    use_checkpoint: false
+    dtype: float32
+work_dir:
+  desc: null
+  value: ../output/2025.12.11/014609
+wandb_name:
+  desc: null
+  value: 014609
+_wandb:
+  desc: null
+  value:
+    python_version: 3.9.18
+    cli_version: 0.16.3
+    framework: huggingface
+    huggingface_version: 4.38.1
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1765435572.872192
+    t:
+      1:
+      - 1
+      - 11
+      - 49
+      - 50
+      - 51
+      - 55
+      - 71
+      3:
+      - 4
+      - 13
+      - 16
+      - 23
+      - 42
+      4: 3.9.18
+      5: 0.16.3
+      6: 4.38.1
+      8:
+      - 5
+      13: linux-x86_64

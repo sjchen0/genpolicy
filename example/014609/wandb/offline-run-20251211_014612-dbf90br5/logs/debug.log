@@ -1,0 +1,24 @@
+2025-12-11 01:46:12,863 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Current SDK version is 0.16.3
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Configure stats pid to 759235
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Loading settings from /home/sc5510/.config/wandb/settings
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Loading settings from /scratch/gpfs/KLUSOWSKI/sijin/sc5510/RADD/wandb/settings
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Loading settings from environment variables: {'mode': 'offline'}
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'train_policy.py', 'program_abspath': '/scratch/gpfs/KLUSOWSKI/sijin/sc5510/RADD/train_policy.py', 'program': '/scratch/gpfs/KLUSOWSKI/sijin/sc5510/RADD/train_policy.py'}
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_init.py:_log_setup():526] Logging user logs to /scratch/gpfs/KLUSOWSKI/sijin/sc5510/output/2025.12.11/014609/wandb/offline-run-20251211_014612-dbf90br5/logs/debug.log
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_init.py:_log_setup():527] Logging internal logs to /scratch/gpfs/KLUSOWSKI/sijin/sc5510/output/2025.12.11/014609/wandb/offline-run-20251211_014612-dbf90br5/logs/debug-internal.log
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_init.py:init():566] calling init triggers
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_init.py:init():573] wandb.init called with sweep_config: {}
+config: {'ngpus': 1, 'tokens': 50257, 'gpt_dir': 'gpt2-large', 'outdir': '../output', 'pretrained_hf_path': 'JingyangOu/radd-t-dce', 'training': {'batch_size': 8, 'accum': 1, 'n_iters': 1000001, 'snapshot_freq': 200, 'log_freq': 50, 'eval_freq': 100, 'snapshot_freq_for_preemption': 10000, 'weight': 'standard', 'snapshot_sampling': False, 'ema': 0.9999, 'loss_type': 'policy_log_loss'}, 'data': {'train': 'openwebtext', 'valid': 'wikitext103', 'cache_dir': 'data'}, 'noise': {'type': 'loglinear', 'sigma_min': 0.0001, 'sigma_max': 20}, 'sampling': {'predictor': 'euler', 'steps': 1024, 'discrete_steps': 16, 'discrete_time_exponent': 0.9}, 'eval': {'batch_size': 8, 'perplexity': True, 'perplexity_batch_size': 16}, 'optim': {'weight_decay': 0, 'optimizer': 'AdamW', 'lr': 0.0003, 'beta1': 0.9, 'beta2': 0.999, 'eps': 1e-08, 'warmup': 2500, 'grad_clip': 1.0}, 'model': {'name': 'small_radd', 'type': 'ddit_wot', 'hidden_size': 768, 'cond_dim': 128, 'length': 1024, 'n_blocks': 12, 'n_heads': 12, 'dropout': 0.02, 'use_checkpoint': False, 'dtype': 'float32'}, 'work_dir': '../output/2025.12.11/014609', 'wandb_name': '014609'}
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_init.py:init():616] starting backend
+2025-12-11 01:46:12,864 INFO    MainThread:759235 [wandb_init.py:init():620] setting up manager
+2025-12-11 01:46:12,865 INFO    MainThread:759235 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2025-12-11 01:46:12,871 INFO    MainThread:759235 [wandb_init.py:init():628] backend started and connected
+2025-12-11 01:46:12,876 INFO    MainThread:759235 [wandb_init.py:init():720] updated telemetry
+2025-12-11 01:46:12,931 INFO    MainThread:759235 [wandb_init.py:init():753] communicating run to backend with 90.0 second timeout
+2025-12-11 01:46:12,935 INFO    MainThread:759235 [wandb_init.py:init():804] starting run threads in backend
+2025-12-11 01:46:27,632 INFO    MainThread:759235 [wandb_run.py:_console_start():2241] atexit reg
+2025-12-11 01:46:27,632 INFO    MainThread:759235 [wandb_run.py:_redirect():2096] redirect: wrap_raw
+2025-12-11 01:46:27,632 INFO    MainThread:759235 [wandb_run.py:_redirect():2161] Wrapping output streams.
+2025-12-11 01:46:27,634 INFO    MainThread:759235 [wandb_run.py:_redirect():2186] Redirects installed.
+2025-12-11 01:46:27,634 INFO    MainThread:759235 [wandb_init.py:init():847] run started, returning control to user process

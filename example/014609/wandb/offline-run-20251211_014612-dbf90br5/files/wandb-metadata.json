@@ -1,0 +1,294 @@
+{
+    "os": "Linux-5.14.0-570.72.1.el9_6.x86_64-x86_64-with-glibc2.34",
+    "python": "3.9.18",
+    "heartbeatAt": "2025-12-11T06:46:13.001505",
+    "startedAt": "2025-12-11T06:46:12.856995",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "training.accum=1",
+        "training.batch_size=8",
+        "eval.batch_size=8",
+        "sampling.discrete_steps=16",
+        "model.dtype=float32"
+    ],
+    "state": "running",
+    "program": "/scratch/gpfs/KLUSOWSKI/sijin/sc5510/RADD/train_policy.py",
+    "codePathLocal": "train_policy.py",
+    "codePath": "train_policy.py",
+    "git": {
+        "remote": "https://github.com/ML-GSAI/RADD.git",
+        "commit": "33fce537c0061118d72fa1d0f3de1cef90bf1d56"
+    },
+    "email": "chensj@princeton.edu",
+    "root": "/scratch/gpfs/KLUSOWSKI/sijin/sc5510/RADD",
+    "host": "della-l03g8",
+    "username": "sc5510",
+    "executable": "/home/sc5510/.conda/envs/radd/bin/python",
+    "cpu_count": 48,
+    "cpu_count_logical": 48,
+    "cpu_freq": {
+        "current": 3299.9979166666667,
+        "min": 3500.0,
+        "max": 3500.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.033,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.033,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.044,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.033,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3299.966,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.033,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.057,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.061,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3299.966,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3299.944,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3299.945,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.055,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3299.926,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        },
+        {
+            "current": 3300.0,
+            "min": 3500.0,
+            "max": 3500.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 195.217041015625,
+            "used": 80.41017532348633
+        }
+    },
+    "gpu": "NVIDIA A100 80GB PCIe",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA A100 80GB PCIe",
+            "memory_total": 85899345920
+        }
+    ],
+    "memory": {
+        "total": 1006.8432235717773
+    }
+}
