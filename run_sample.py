@@ -22,7 +22,7 @@ def main(rep=1000):
     parser.add_argument("--perplexity", type=bool, default=True)
     parser.add_argument("--gpt_dir", type=str, default="gpt2-large")
     parser.add_argument("--perplexity_batch_size", type=int, default=1)
-    parser.add_argument("--policy_path", default="../output/2025.12.11/014609/checkpoints-meta/checkpoint.pth", type=str)
+    parser.add_argument("--policy_path", default="example/014609/checkpoints-meta/checkpoint.pth", type=str)
 
     args = parser.parse_args()
 
