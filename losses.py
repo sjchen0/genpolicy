@@ -230,7 +230,7 @@ def get_policy_loss_fn(noise, token_dim, train, discrete_timesteps, num_trajecto
                 batch_t = discrete_timesteps[k] * torch.ones(B, device=batch.device)
                 forward_policy = policy_model(hidden_state, log_condition, batch_t)[:,:,0] # (B, L)
                 mask = batch_km1 == token_dim - 1
-                forward_policy[mask] = 0.
+                forward_policy = forward_policy.masked_fill(mask, 0.)
                 forward_set = torch.zeros_like(batch, dtype=torch.bool)
                 forward_indices = torch.zeros((forward_policy.shape[0], num_unmask), dtype=torch.int64, device=forward_policy.device)
                 for b in range(forward_policy.shape[0]):
@@ -238,6 +238,10 @@ def get_policy_loss_fn(noise, token_dim, train, discrete_timesteps, num_trajecto
                     # print("sampled indices len:", len(idx), idx)
                     forward_indices[b] = idx
                 forward_set.scatter_(1, forward_indices, True)
+
+                log_forward_prob = ((forward_policy + 1e-20).log() * forward_set).mean(-1)
+                # import ipdb; ipdb.set_trace()
+
                 batch_k = batch_km1.clone()
                 batch_k[forward_set] = token_dim - 1
 
@@ -259,17 +263,25 @@ def get_policy_loss_fn(noise, token_dim, train, discrete_timesteps, num_trajecto
                 with torch.no_grad():
                     log_condition, hidden_state = score_model.forward_with_hidden(batch_k)
                 
-                vocab_probs = torch.ones_like(log_condition, dtype=policy_model.module.dtype)
-                vocab_probs[:,:,:-1] = F.softmax(log_condition[:,:,:-1], dim=-1) # (B, L, V)
+                # vocab_probs = torch.ones_like(log_condition, dtype=policy_model.module.dtype)
+                # vocab_probs[:,:,:-1] = F.softmax(log_condition[:,:,:-1], dim=-1) # (B, L, V)
+
+                soft = F.softmax(log_condition[:,:,:-1], dim=-1)
+                vocab_probs = torch.cat([soft, torch.ones_like(soft[..., :1])], dim=-1)
+
                 unmasked = (batch_k != batch_km1).to(vocab_probs.dtype)
                 target_onehot = F.one_hot(batch_km1, num_classes=vocab_probs.shape[-1])
                 vocab_probs = (vocab_probs * target_onehot).sum(-1) # (B, L)
                 backward_policy = policy_model(hidden_state, log_condition, batch_t)[:,:,1]
 
                 log_step_metric = (((vocab_probs + 1e-20).log() + (backward_policy + 1e-20).log()) * unmasked).mean(-1)
-                total_loss -= log_step_metric
+                
+                # REINFORCE unbiased gradient estimate
+                total_loss -= (log_step_metric + (log_step_metric.detach() - log_step_metric.detach().mean()) * log_forward_prob)
 
                 batch_km1 = batch_k.clone()
+
+                # import ipdb; ipdb.set_trace()
 
         return total_loss
     
