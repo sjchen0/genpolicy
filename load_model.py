@@ -43,7 +43,6 @@ def load_model(root_dir, device):
         # return load_model_local(root_dir, device)
 
 def load_policy(policy_ckpt, device):
-    # import ipdb; ipdb.set_trace()
     policy_weights = torch.load(policy_ckpt, weights_only=False, map_location=device)['policy_model']
     config_path = Path(policy_ckpt).parent.parent/".hydra"
     with initialize(config_path=str(config_path), version_base=None):

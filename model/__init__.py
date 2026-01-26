@@ -1,1 +1,1 @@
-from .transformer import RADD, PolicyNet
+from .transformer import RADD, PolicyNet, PolicyTransformer

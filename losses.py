@@ -157,59 +157,164 @@ def get_loss_fn(noise, token_dim, train, sampling_eps=1e-3, loss_type='lambda_DC
         raise NotImplementedError(f'Loss type {loss_type} not supported yet!')
 
 
-def get_policy_loss_fn(noise, token_dim, train, discrete_timesteps, num_trajectories=2, sampling_eps=1e-3, loss_type='lambda_DCE',order = torch.arange(1024)):
-    def policy_log_loss_uniform(score_model, policy_model, batch, cond = None):
-        # 1. given a batch, sample multiple trajectories at discrete timesteps 0 < t1 < ... < tK < 1
-        # 2. at each state of each trajectory, looking at the unmasked places,
-        #    evaluate (log_policy_model(x_k) + log_score_model(x_k-1 | x_k)).sum().exp()
-        # 3. then aggregate and take negative log
-        score_model.eval()
-        if train:
-            policy_model.train()
-        else:
-            policy_model.eval()
-
-        total_loss = torch.zeros(batch.shape[0], device=batch.device)
-        for n in range(num_trajectories):
-            #print(n)
-            batch_discrete_timesteps = discrete_timesteps.unsqueeze(0).repeat(batch.shape[0], 1) # (B, K)
-            sigma, dsigma = noise(batch_discrete_timesteps) # K many values, one at each timestep
-            perturbed_batch_trajectory = add_noise_trajectory(batch, sigma, token_dim - 1) # (B, K, L)
-            log_trajectory_metric = torch.zeros(batch.shape[0], device=batch.device)
-            for k_full in range(2):
-                k = torch.randint(0, perturbed_batch_trajectory.shape[1], (1,)).item()
-                batch_k = perturbed_batch_trajectory[:,k,:]
-                batch_km1 = perturbed_batch_trajectory[:,k-1,:] if k > 0 else batch
-                batch_t = batch_discrete_timesteps[:,k]
-                with torch.no_grad():
-                    log_condition, hidden_state = score_model.forward_with_hidden(batch_k) # (B, L, V+1), (B, L, h)
-                #log_condition = log_condition.to(batch.device)
-                #hidden_state = hidden_state.to(batch.device)
-                vocab_probs = torch.ones_like(log_condition, dtype=policy_model.module.dtype)
-                vocab_probs[:,:,:-1] = F.softmax(log_condition[:, :, :-1], dim=-1) # (B, L, V)
-                unmasked = (batch_k != batch_km1).to(vocab_probs.dtype)
-                # import ipdb; ipdb.set_trace()
-                target_onehot = F.one_hot(batch_km1, num_classes=vocab_probs.shape[-1])
-                vocab_probs = (vocab_probs * target_onehot).sum(-1) # (B, L)
-                policy = policy_model(hidden_state, log_condition, batch_t).squeeze(-1) # (B, L)
-                # print(k, vocab_probs.max(), vocab_probs.min(), policy.max(), policy.min())
-                
-                log_step_metric = (((vocab_probs + 1e-20).log() + (policy + 1e-20).log()) * unmasked).mean(-1) # (B,)
-                # print(n, k_full, vocab_probs.sum(-1))
-                # step_metric = (vocab_probs * policy * unmasked).prod(-1)
-
-                log_trajectory_metric += log_step_metric
-
-                # import ipdb; ipdb.set_trace()
-            loss = -log_trajectory_metric
-            total_loss += loss
-        return total_loss
+def get_policy_loss_fn(noise, special_tokens, train, discrete_timesteps, num_trajectories=2, sampling_eps=1e-3, loss_type='lambda_DCE',order = torch.arange(1024)):
 
     def policy_log_loss_bidirection(score_model, policy_model, batch, cond = None):
         # 1. given a batch, sample multiple trajectories at discrete timesteps 0 < t1 < ... < tK < 1
         # 2. at each state of each trajectory, looking at the unmasked places,
         #    evaluate (log_policy_model(x_k) + log_score_model(x_k-1 | x_k)).sum().exp()
         # 3. then aggregate and take negative log
+        
+        mask_token_id = special_tokens['mask_token_id']
+        pad_token_id = special_tokens['pad_token_id']
+
+        input_ids, attention_mask, prompt_mask = batch, torch.ones_like(batch), torch.zeros_like(batch)
+
+        # broadcast to [B, 1, N, N]
+        attention_mask = torch.logical_and(
+            attention_mask.unsqueeze(1).unsqueeze(-2),
+            attention_mask.unsqueeze(1).unsqueeze(-1),
+        )
+        attention_mask = attention_mask.to(torch.bfloat16)
+
+        # EXPERIMENTAL: attending to PAD
+        # attention_mask = None
+
+        score_model.eval()
+        if train:
+            policy_model.train()
+        else:
+            policy_model.eval()
+
+        total_loss = torch.zeros(input_ids.shape[0], device=input_ids.device)
+        total_loss_raw = torch.zeros(input_ids.shape[0], device=input_ids.device)
+        B, L = input_ids.shape
+        response_len = L - prompt_mask.sum(dim=-1)
+        min_response_len = L - prompt_mask.sum(dim=-1).max()
+        K = discrete_timesteps.shape[0]
+        
+        nums_unmask = response_len // K
+        num_unmask = min_response_len // K
+
+        # print(nums_unmask, response_len, K)
+
+        for n in range(num_trajectories):
+            # sample discrete timesteps
+            input_ids_km1 = input_ids.clone()
+            forward_policy = None
+            x0_hidden_state = None
+            for k in range(K):
+                with torch.no_grad():
+                    # out = score_model(input_ids_km1, attention_mask, output_hidden_states=True, return_dict=True)
+                    log_condition, hidden_state = score_model.forward_with_hidden(input_ids_km1)
+                    # EXPERIMENTAL: shift hidden_state by 1
+                    # hidden_state = torch.concat([hidden_state[:, :1], hidden_state[:, :-1]], dim=1)
+                    x0_hidden_state = hidden_state
+
+                # log_condition = torch.cat([log_condition[:,:1], log_condition[:, :-1]], dim=1)
+                input_ids_t = discrete_timesteps[k] * torch.ones(B, device=input_ids.device)
+                mask = input_ids_km1 == mask_token_id
+                mask = torch.logical_or(mask, prompt_mask == 1)
+                forward_policy = policy_model(
+                    x0_hidden_state,
+                    log_condition,
+                    input_ids_t,
+                    mask_index=(input_ids_km1 == mask_token_id),
+                    prompt_index=(prompt_mask == 1),
+                    attn_mask=attention_mask.squeeze(1)[0]
+                )[:,:,0] # (B, L)
+
+                forward_suppress = (prompt_mask == 1) + (input_ids_km1 == mask_token_id)
+                forward_policy = F.softmax((forward_policy + 1e-20).log().masked_fill(forward_suppress, -float("inf")), dim=-1)
+
+                forward_set = torch.zeros_like(input_ids, dtype=torch.bool)
+                forward_indices_list = [
+                    torch.zeros((nums_unmask[b]), dtype=torch.int64, device=forward_policy.device) 
+                    for b in range(forward_policy.shape[0])
+                ]
+                for b in range(forward_policy.shape[0]):
+                    idx = torch.multinomial(forward_policy[b], nums_unmask[b], replacement=False)
+                    # if forward_policy[b].sum() > 0:
+                    #     idx = torch.multinomial(forward_policy[b], nums_unmask[b], replacement=False)
+                    # else:
+                    #     idx = torch.multinomial(torch.ones_like(forward_policy[b]), nums_unmask[b], replacement=False)
+                    forward_indices_list[b] = idx
+                    forward_set[b].scatter_(0, forward_indices_list[b], True)
+
+                log_forward_prob = ((forward_policy + 1e-20).log() * forward_set).mean(-1)
+
+                input_ids_k = input_ids_km1.clone()
+                input_ids_k[forward_set] = mask_token_id
+
+                with torch.no_grad():
+                    # out = score_model(input_ids_k, attention_mask, output_hidden_states=True, return_dict=True)
+                    log_condition, hidden_state = score_model.forward_with_hidden(input_ids_k)
+                    # EXPERIMENTAL: shift hidden_state by 1
+                    # hidden_state = torch.concat([hidden_state[:, :1], hidden_state[:, :-1]], dim=1)
+
+                # reset vocab_probs according to Dream config
+                # log_condition = torch.cat([log_condition[:,:1], log_condition[:, :-1]], dim=1)
+                vocab_probs_dist = F.softmax(log_condition, dim=-1)
+
+                unmasked = (input_ids_k != input_ids_km1).to(vocab_probs_dist.dtype)
+                # EXPERIMENTAL: ignore PADs
+                # unmasked = unmasked * (input_ids_k != pad_token_id).to(unmasked.dtype)
+                
+                # target_onehot = F.one_hot(input_ids_km1, num_classes=vocab_probs_dist.shape[-1])
+                # vocab_probs = (vocab_probs_dist * target_onehot).sum(-1) # (B, L)
+                
+                vocab_probs = vocab_probs_dist.gather(-1, input_ids_km1.unsqueeze(-1)).squeeze(-1)
+                
+                mask = (input_ids_k == mask_token_id)
+                mask = torch.logical_or(mask, prompt_mask == 1)
+                policy_out = policy_model(
+                    hidden_state,
+                    log_condition,
+                    input_ids_t,
+                    mask_index=(input_ids_k == mask_token_id),
+                    prompt_index=(prompt_mask == 1),
+                    attn_mask=attention_mask.squeeze(1)[0]
+                )
+                
+                backward_suppress = (prompt_mask == 1) + ~(input_ids_k == mask_token_id)
+                backward_policy = policy_out[:,:,1]
+
+                backward_logpolicy_suppress = F.log_softmax((backward_policy + 1e-20).log().masked_fill(backward_suppress, -float("inf")), dim=-1)
+
+                # log_step_metric = ((
+                #     (vocab_probs + 1e-20).log() + backward_logpolicy_suppress #- (0.01 * (forward_policy + 1e-20)).log()
+                # ) * unmasked).mean(-1)
+
+                term = (vocab_probs + 1e-20).log() + backward_logpolicy_suppress - (forward_policy + 1e-20).log()
+                term = term.masked_fill(~unmasked.bool(), 0.0)
+                log_step_metric = term.mean(-1)
+
+                # regularize KL(pi, pi_ref) and KL(w, uniform) (negative entropy)
+                ref_policy = (vocab_probs_dist * (vocab_probs_dist + 1e-20).log()).sum(-1)
+                backward_suppress = (prompt_mask == 1) + ~(input_ids_k == mask_token_id)
+                # ref_policy = ref_policy.masked_fill(backward_suppress, -float("inf"))
+                ref_policy = F.softmax(ref_policy, dim=-1)
+
+                kl_reg = (backward_policy * ((backward_policy + 1e-20).log() - (ref_policy + 1e-20).log()) + forward_policy * (forward_policy + 1e-20).log()).sum(-1)
+
+                log_step_metric = log_step_metric - 0.05 * kl_reg
+                
+                # REINFORCE unbiased gradient estimate
+                total_loss -= (log_step_metric + (log_step_metric.detach() - log_step_metric.detach().mean()) * log_forward_prob)
+                total_loss_raw -= log_step_metric
+
+                input_ids_km1 = input_ids_k.clone()
+
+                # import ipdb; ipdb.set_trace()
+
+        return total_loss
+
+    def policy_log_loss_bidirection_legacy(score_model, policy_model, batch, cond = None):
+        # 1. given a batch, sample multiple trajectories at discrete timesteps 0 < t1 < ... < tK < 1
+        # 2. at each state of each trajectory, looking at the unmasked places,
+        #    evaluate (log_policy_model(x_k) + log_score_model(x_k-1 | x_k)).sum().exp()
+        # 3. then aggregate and take negative log
+        token_dim = special_tokens['mask_token_id'] + 1
         score_model.eval()
         if train:
             policy_model.train()
@@ -428,8 +533,8 @@ def get_step_fn(noise, token_dim,  train, optimize_fn, accum, loss_type):
     return step_fn
 
 
-def get_policy_step_fn(noise, token_dim, train, discrete_timesteps, optimize_fn, accum, loss_type):
-    policy_loss_fn = get_policy_loss_fn(noise, token_dim, train, discrete_timesteps, loss_type = loss_type)
+def get_policy_step_fn(noise, special_tokens, train, discrete_timesteps, optimize_fn, accum, loss_type):
+    policy_loss_fn = get_policy_loss_fn(noise, special_tokens, train, discrete_timesteps, loss_type = loss_type)
 
     accum_iter = 0
     total_loss = 0

@@ -13,7 +13,7 @@ import data
 import losses
 import noise_lib
 import utils
-from model import RADD, PolicyNet
+from model import RADD, PolicyNet, PolicyTransformer
 from model.ema import ExponentialMovingAverage
 from transformers import GPT2TokenizerFast, GPT2LMHeadModel
 from sampling import DiffusionSampler
@@ -80,7 +80,7 @@ def _run(local_rank, gloab_rank, world_size, cfg):
     device = torch.device('cuda')
     radd_model, noise = load_model(cfg.pretrained_hf_path, device)
 
-    policy_model = PolicyNet(cfg).to(device)
+    policy_model = PolicyTransformer(cfg).to(device)
     policy_model = DDP(policy_model, device_ids=[local_rank], static_graph=False, find_unused_parameters=False)
 
     radd_num_parameters = sum(p.numel() for p in radd_model.parameters())
@@ -94,6 +94,7 @@ def _run(local_rank, gloab_rank, world_size, cfg):
     mprint(f"EMA: {ema}")
 
     token_dim = cfg.tokens + 1
+    special_tokens = dict(mask_token_id=token_dim - 1, pad_token_id=token_dim - 1)
 
     # build noise
     # noise = noise_lib.get_noise(cfg).to(device)
@@ -127,8 +128,8 @@ def _run(local_rank, gloab_rank, world_size, cfg):
     discrete_timesteps = torch.linspace(0, 1, steps=cfg.sampling.discrete_steps + 2, device=device)[1:-1]
     discrete_timesteps = discrete_timesteps ** (cfg.sampling.discrete_time_exponent)
 
-    train_step_fn = losses.get_policy_step_fn(noise, token_dim, True, discrete_timesteps, optimize_fn, cfg.training.accum,cfg.training.loss_type)
-    eval_step_fn = losses.get_policy_step_fn(noise, token_dim, False, discrete_timesteps, optimize_fn, cfg.training.accum,cfg.training.loss_type)
+    train_step_fn = losses.get_policy_step_fn(noise, special_tokens, True, discrete_timesteps, optimize_fn, cfg.training.accum,cfg.training.loss_type)
+    eval_step_fn = losses.get_policy_step_fn(noise, special_tokens, False, discrete_timesteps, optimize_fn, cfg.training.accum,cfg.training.loss_type)
 
 
     if cfg.training.snapshot_sampling:

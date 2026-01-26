@@ -91,6 +91,11 @@ class DiffusionSampler(Sampler):
             policy = self.policy(hidden_state, log_condition, batch_t)[:,:,1] # (B, L)
             # policy = policy + torch.randn_like(policy) * 2e-3
             # print(policy.min().item(), policy.max().item())
+            
+            temperature = 0.8
+            policy = policy.log() / temperature
+            policy = F.softmax(policy, dim=-1)
+
             vocab_probs = torch.ones_like(log_condition, dtype=self.policy.dtype)
             vocab_probs[:,:,:-1] = F.softmax(log_condition[:, :, :-1], dim=-1) # (B, L, V)
 
@@ -103,19 +108,19 @@ class DiffusionSampler(Sampler):
             # decide unmask set by sampling
             policy[~mask] = 0
             # keep top-p portion
-
-            if mask.sum(-1).min().item() > policy.shape[1] // steps:
-                top_p = 0.99
-                policy = policy / policy.sum(dim=-1, keepdim=True)
-                sorted_probs, sorted_idx = policy.sort(dim=-1, descending=True)
-                cumulative = sorted_probs.cumsum(dim=-1)
-                cutoff = cumulative <= top_p
-                cutoff[:, 0] = True
-                filtered = torch.zeros_like(policy)
-                filtered.scatter_(1, sorted_idx[cutoff].view(policy.size(0), -1), 
-                                    sorted_probs[cutoff].view(policy.size(0), -1))
-                filtered = filtered / filtered.sum(dim=-1, keepdim=True)
-                policy = filtered
+            if True:
+                if mask.sum(-1).min().item() > policy.shape[1] // steps:
+                    top_p = 0.99
+                    policy = policy / policy.sum(dim=-1, keepdim=True)
+                    sorted_probs, sorted_idx = policy.sort(dim=-1, descending=True)
+                    cumulative = sorted_probs.cumsum(dim=-1)
+                    cutoff = cumulative <= top_p
+                    cutoff[:, 0] = True
+                    filtered = torch.zeros_like(policy)
+                    filtered.scatter_(1, sorted_idx[cutoff].view(policy.size(0), -1), 
+                                        sorted_probs[cutoff].view(policy.size(0), -1))
+                    filtered = filtered / filtered.sum(dim=-1, keepdim=True)
+                    policy = filtered
 
             unmask_set = torch.zeros_like(mask, dtype=torch.bool)
             unmask_indices = torch.zeros((policy.shape[0], policy.shape[1] // steps), dtype=torch.int64, device=policy.device)
@@ -187,18 +192,24 @@ class DiffusionSampler(Sampler):
             # if changed.any():
             mask = x == self.token_dim - 1
             log_condition, hidden_state = self.model.forward_with_hidden(x) # (B, L, V+1), (B, L, h)
+            indices = None
             # print(log_condition.dtype)
             
             # confidence ver 1
             # policy = torch.amax(log_condition[:,:,:-1], dim=-1) # (B, L)
 
-            # confidence ver 2
+            # confidence ver 2, topk_margin + noise
             v, idx = torch.topk(log_condition[:,:,:-1], 2, dim=-1)
             policy = (v[:,:,0] - v[:,:,1]).abs()
             policy += torch.randn_like(policy) * 1e-0
 
-            # eps = 1e-5 * torch.randint(0, 2, policy.shape, device=policy.device).float()
-            # policy = policy + eps
+            # confidence ver 3, multinomial
+            # v, idx = torch.topk(log_condition[:,:,:-1], 2, dim=-1)
+            # policy = (v[:,:,0] - v[:,:,1]).abs()
+            # policy = F.softmax(policy, dim=-1)
+            # policy[~mask] = 0.
+            # indices = torch.multinomial(policy, policy.shape[1] // steps, replacement=False)
+
             # print(policy.min().item(), policy.max().item())
             vocab_probs = torch.ones_like(log_condition, dtype=self.policy.dtype)
             vocab_probs[:,:,:-1] = F.softmax(log_condition[:, :, :-1], dim=-1) # (B, L, V)
@@ -206,8 +217,9 @@ class DiffusionSampler(Sampler):
             # sample unmask set by Bernoulli trials --- seems not to work well
             # alternative: unmask the top-k tokens with highest policy value
 
-            policy[~mask] = -1e4
-            values, indices = torch.topk(policy, policy.shape[1] // steps, dim=-1)
+            if indices is None:
+                policy[~mask] = -1e4
+                values, indices = torch.topk(policy, policy.shape[1] // steps, dim=-1)
             # print(values)
             unmask_set = torch.zeros_like(mask, dtype=torch.bool)
             unmask_set.scatter_(1, indices, True)
